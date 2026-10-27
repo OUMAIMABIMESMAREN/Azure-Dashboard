@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Azure Automation | Microsoft Azure')}"></head>
+<body>
+
+<div th:replace="~{fragments/layout :: sidebar('automation')}"></div>
+<header th:replace="~{fragments/layout :: topbar('Azure Automation')}"></header>
+
+<main class="main-content" id="mainContent">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-robot text-azure me-2" style="font-size:20px"></i>
+                Azure Automation
+            </h1>
+            <p class="page-subtitle">Manage runbooks, schedules, update management, and automation tasks</p>
+        </div>
+        <div class="page-actions">
+            <a href="/automation/create" class="btn-azure">
+                <i class="bi bi-plus-lg"></i> New Runbook
+            </a>
+            <button class="btn-azure-outline">
+                <i class="bi bi-clock-history"></i> Job History
+            </button>
+        </div>
+    </div>
+
+    <!-- Flash -->
+    <div th:if="${successMessage}" class="flash-alert success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- ── Summary Cards ──────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card blue">
+                <div class="stat-icon blue"><i class="bi bi-file-code"></i></div>
+                <div>
+                    <div class="stat-value" th:text="${#lists.size(tasks)}">0</div>
+                    <div class="stat-label">Total Runbooks</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card green">
+                <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+                <div>
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Completed Today</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card orange">
+                <div class="stat-icon orange"><i class="bi bi-play-circle-fill"></i></div>
+                <div>
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Currently Running</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card red">
+                <div class="stat-icon red"><i class="bi bi-x-circle-fill"></i></div>
+                <div>
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Failed (Last 7d)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Runbooks Table ─────────────────────────────────────── -->
+    <div class="az-table-wrapper mb-4">
+        <div class="az-table-header">
+            <div class="az-table-title">
+                <i class="bi bi-list-task me-1"></i> Runbooks &amp; Jobs
+            </div>
+            <div class="d-flex gap-8 align-center">
+                <input type="text" id="tableSearch" class="az-input" style="width:200px"
+                       placeholder="Filter runbooks..."/>
+                <select class="az-select" style="width:auto">
+                    <option>All Types</option>
+                    <option>Runbook</option>
+                    <option>Update Management</option>
+                    <option>DSC Configuration</option>
+                </select>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="az-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Schedule</th>
+                        <th>Last Run</th>
+                        <th>Next Run</th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="task : ${tasks}">
+                        <td>
+                            <div class="fw-600" th:text="${task.name}"></div>
+                            <div class="fs-12 text-muted" th:text="${task.description}"></div>
+                            <code class="fs-12 text-azure" th:text="${task.runbook}"></code>
+                        </td>
+                        <td>
+                            <span class="tag-chip" th:text="${task.type}"></span>
+                        </td>
+                        <td>
+                            <span class="az-badge"
+                                  th:classappend="${task.status == 'Completed'} ? 'badge-completed' :
+                                                 (${task.status == 'Running'}   ? 'badge-running-task' :
+                                                 (${task.status == 'Failed'}    ? 'badge-failed' : 'badge-warning'))"
+                                  th:text="${task.status}">
+                            </span>
+                        </td>
+                        <td class="fs-12" th:text="${task.schedule}"></td>
+                        <td class="fs-12 text-muted" th:text="${task.lastRun}"></td>
+                        <td class="fs-12 text-muted" th:text="${task.nextRun}"></td>
+                        <td class="fs-12" th:text="${task.duration}"></td>
+                        <td>
+                            <div class="d-flex gap-8">
+                                <a th:href="@{/automation/run(taskName=${task.name})}"
+                                   class="btn-sm-icon text-azure">
+                                    <i class="bi bi-play-fill"></i> Run
+                                </a>
+                                <button class="btn-sm-icon">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn-sm-icon">
+                                    <i class="bi bi-clock"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── Automation Account Info + Schedule ────────────────── -->
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            <div class="az-card">
+                <div class="fw-700 fs-13 mb-3">
+                    <i class="bi bi-building text-azure me-1"></i>
+                    Automation Account Details
+                </div>
+                <div class="d-flex flex-column" style="gap:10px; font-size:13px">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Account Name</span>
+                        <span class="fw-600">auto-account-prod</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Resource Group</span>
+                        <span class="fw-600">rg-production</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Location</span>
+                        <span class="fw-600">East US</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Subscription</span>
+                        <span class="fw-600">Enterprise Dev/Test</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Run As Account</span>
+                        <span class="az-badge badge-active">Configured</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Hybrid Workers</span>
+                        <span class="fw-600">2 connected</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Update Management</span>
+                        <span class="az-badge badge-active">Enabled</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">DSC Nodes</span>
+                        <span class="fw-600">8 registered</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="az-card">
+                <div class="fw-700 fs-13 mb-3">
+                    <i class="bi bi-calendar-week text-azure me-1"></i>
+                    Upcoming Scheduled Jobs (Next 7 Days)
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px">
+                    <div class="d-flex align-center gap-3 p-2 rounded" style="background:var(--body-bg)">
+                        <div style="width:44px; text-align:center; font-size:11px; font-weight:700; color:var(--azure-blue); line-height:1.1">
+                            <div style="font-size:18px">15</div>MAY
+                        </div>
+                        <div>
+                            <div class="fw-600 fs-13">Daily VM Backup</div>
+                            <div class="fs-12 text-muted">02:00 UTC · Backup-VMs.ps1</div>
+                        </div>
+                        <span class="ms-auto az-badge badge-active">Scheduled</span>
+                    </div>
+                    <div class="d-flex align-center gap-3 p-2 rounded" style="background:var(--body-bg)">
+                        <div style="width:44px; text-align:center; font-size:11px; font-weight:700; color:var(--azure-blue); line-height:1.1">
+                            <div style="font-size:18px">15</div>MAY
+                        </div>
+                        <div>
+                            <div class="fw-600 fs-13">SSL Cert Check</div>
+                            <div class="fs-12 text-muted">06:00 UTC · Check-SSLCerts.ps1</div>
+                        </div>
+                        <span class="ms-auto az-badge badge-active">Scheduled</span>
+                    </div>
+                    <div class="d-flex align-center gap-3 p-2 rounded" style="background:var(--body-bg)">
+                        <div style="width:44px; text-align:center; font-size:11px; font-weight:700; color:var(--azure-blue); line-height:1.1">
+                            <div style="font-size:18px">15</div>MAY
+                        </div>
+                        <div>
+                            <div class="fw-600 fs-13">Scale Down Off-Hours</div>
+                            <div class="fs-12 text-muted">20:00 UTC · Scale-Down-Dev.ps1</div>
+                        </div>
+                        <span class="ms-auto az-badge badge-active">Scheduled</span>
+                    </div>
+                    <div class="d-flex align-center gap-3 p-2 rounded" style="background:var(--body-bg)">
+                        <div style="width:44px; text-align:center; font-size:11px; font-weight:700; color:#d97706; line-height:1.1">
+                            <div style="font-size:18px">18</div>MAY
+                        </div>
+                        <div>
+                            <div class="fw-600 fs-13">DB Index Optimization</div>
+                            <div class="fs-12 text-muted">01:00 UTC · Optimize-DBIndex.ps1</div>
+                        </div>
+                        <span class="ms-auto az-badge badge-warning">Retry</span>
+                    </div>
+                    <div class="d-flex align-center gap-3 p-2 rounded" style="background:var(--body-bg)">
+                        <div style="width:44px; text-align:center; font-size:11px; font-weight:700; color:var(--azure-blue); line-height:1.1">
+                            <div style="font-size:18px">19</div>MAY
+                        </div>
+                        <div>
+                            <div class="fw-600 fs-13">Cleanup Old Snapshots</div>
+                            <div class="fs-12 text-muted">03:00 UTC · Cleanup-Snapshots.ps1</div>
+                        </div>
+                        <span class="ms-auto az-badge badge-active">Scheduled</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/main.js"></script>
+</body>
+</html>

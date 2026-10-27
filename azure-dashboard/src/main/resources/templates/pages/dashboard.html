@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Azure Portal | Dashboard')}"></head>
+<body>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/layout :: sidebar('dashboard')}"></div>
+
+<!-- Topbar -->
+<header th:replace="~{fragments/layout :: topbar('Dashboard')}"></header>
+
+<!-- Main Content -->
+<main class="main-content" id="mainContent">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-grid-1x2-fill text-azure me-2" style="font-size:20px"></i>
+                Azure Portal
+            </h1>
+            <p class="page-subtitle">
+                Subscription: <strong th:text="${summary.subscription}"></strong>
+                &nbsp;·&nbsp; Tenant: <code style="font-size:11px" th:text="${summary.tenantId}"></code>
+            </p>
+        </div>
+        <div class="page-actions">
+            <a href="/resources/create" class="btn-azure">
+                <i class="bi bi-plus-lg"></i> Create a resource
+            </a>
+            <button class="btn-azure-outline">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Flash Alert -->
+    <div th:if="${successMessage}" class="flash-alert success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- ── Stat Cards Row ─────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card blue">
+                <div class="stat-icon blue"><i class="bi bi-boxes"></i></div>
+                <div>
+                    <div class="stat-value" th:text="${summary.totalResources}">0</div>
+                    <div class="stat-label">Total Resources</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card orange">
+                <div class="stat-icon orange"><i class="bi bi-bell-fill"></i></div>
+                <div>
+                    <div class="stat-value" th:text="${summary.activeAlerts}">0</div>
+                    <div class="stat-label">Active Alerts</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card teal">
+                <div class="stat-icon teal"><i class="bi bi-currency-dollar"></i></div>
+                <div>
+                    <div class="stat-value" th:text="${summary.monthlyCost}">$0</div>
+                    <div class="stat-label">Monthly Cost</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card green">
+                <div class="stat-icon green"><i class="bi bi-shield-fill-check"></i></div>
+                <div>
+                    <div class="stat-value" th:text="${summary.secureScore} + '/100'">0</div>
+                    <div class="stat-label">Secure Score</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card blue">
+                <div class="stat-icon blue"><i class="bi bi-pc-display"></i></div>
+                <div>
+                    <div class="stat-value" th:text="${summary.runningVMs}">0</div>
+                    <div class="stat-label">Running VMs</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="stat-card purple">
+                <div class="stat-icon purple"><i class="bi bi-collection-fill"></i></div>
+                <div>
+                    <div class="stat-value" th:text="${summary.resourceGroups}">0</div>
+                    <div class="stat-label">Resource Groups</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Main Grid ───────────────────────────────────────────── -->
+    <div class="row g-3">
+
+        <!-- Activity Feed -->
+        <div class="col-12 col-xl-4">
+            <div class="az-card h-100">
+                <div class="d-flex align-center gap-8 mb-3">
+                    <i class="bi bi-clock-history text-azure"></i>
+                    <span class="fw-700 fs-13">Recent Activity</span>
+                    <span class="ms-auto fs-12 text-muted">Last 24h</span>
+                </div>
+                <div class="activity-feed">
+                    <div th:each="activity : ${recentActivity}" class="activity-item">
+                        <div class="activity-dot"
+                             th:classappend="${activity.type == 'success'} ? 'dot-success' :
+                                            (${activity.type == 'warning'} ? 'dot-warning' :
+                                            (${activity.type == 'danger'} ? 'dot-danger' : 'dot-info'))">
+                            <i th:class="${activity.type == 'success'} ? 'bi bi-check' :
+                                         (${activity.type == 'warning'} ? 'bi bi-exclamation' :
+                                         (${activity.type == 'danger'} ? 'bi bi-x' : 'bi bi-info'))"></i>
+                        </div>
+                        <div class="activity-text">
+                            <div class="activity-action" th:text="${activity.action}"></div>
+                            <div class="activity-resource" th:text="${activity.resource}"></div>
+                            <div class="activity-meta" th:text="${activity.category}"></div>
+                        </div>
+                        <div class="activity-time" th:text="${activity.time}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Summary + Quick Links -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="az-card mb-3">
+                <div class="fw-700 fs-13 mb-3">
+                    <i class="bi bi-diagram-3-fill text-azure me-1"></i>
+                    Resource Overview
+                </div>
+                <div class="d-flex flex-column gap-8">
+                    <div class="d-flex align-center" style="gap:10px">
+                        <i class="bi bi-pc-display text-muted" style="width:18px"></i>
+                        <span class="fs-13">Virtual Machines</span>
+                        <span class="ms-auto fw-600 text-azure" th:text="${summary.runningVMs}"></span>
+                    </div>
+                    <div class="d-flex align-center" style="gap:10px">
+                        <i class="bi bi-hdd text-muted" style="width:18px"></i>
+                        <span class="fs-13">Storage Accounts</span>
+                        <span class="ms-auto fw-600 text-azure" th:text="${summary.storageAccounts}"></span>
+                    </div>
+                    <div class="d-flex align-center" style="gap:10px">
+                        <i class="bi bi-globe text-muted" style="width:18px"></i>
+                        <span class="fs-13">Web Apps</span>
+                        <span class="ms-auto fw-600 text-azure" th:text="${summary.webApps}"></span>
+                    </div>
+                    <div class="d-flex align-center" style="gap:10px">
+                        <i class="bi bi-server text-muted" style="width:18px"></i>
+                        <span class="fs-13">SQL Databases</span>
+                        <span class="ms-auto fw-600 text-azure" th:text="${summary.sqlDatabases}"></span>
+                    </div>
+                    <div class="d-flex align-center" style="gap:10px">
+                        <i class="bi bi-folder text-muted" style="width:18px"></i>
+                        <span class="fs-13">Resource Groups</span>
+                        <span class="ms-auto fw-600 text-azure" th:text="${summary.resourceGroups}"></span>
+                    </div>
+                </div>
+                <a href="/resources" class="btn-azure-outline mt-3 w-100 justify-content-center">
+                    View All Resources <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Quick Nav Cards -->
+            <div class="row g-2">
+                <div class="col-6">
+                    <a href="/monitor" class="az-card d-flex flex-column align-items-center text-center p-3"
+                       style="gap:8px; text-decoration:none; cursor:pointer;">
+                        <i class="bi bi-activity text-azure" style="font-size:22px"></i>
+                        <span class="fs-12 fw-600">Azure Monitor</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="/cost" class="az-card d-flex flex-column align-items-center text-center p-3"
+                       style="gap:8px; text-decoration:none;">
+                        <i class="bi bi-currency-dollar text-azure" style="font-size:22px"></i>
+                        <span class="fs-12 fw-600">Cost Management</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="/automation" class="az-card d-flex flex-column align-items-center text-center p-3"
+                       style="gap:8px; text-decoration:none;">
+                        <i class="bi bi-robot text-azure" style="font-size:22px"></i>
+                        <span class="fs-12 fw-600">Automation</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="/security" class="az-card d-flex flex-column align-items-center text-center p-3"
+                       style="gap:8px; text-decoration:none;">
+                        <i class="bi bi-shield-fill-check text-azure" style="font-size:22px"></i>
+                        <span class="fs-12 fw-600">Security Center</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Score + Cost Trend -->
+        <div class="col-12 col-md-6 col-xl-4 d-flex flex-column gap-3">
+
+            <div class="az-card flex-grow-1">
+                <div class="fw-700 fs-13 mb-3">
+                    <i class="bi bi-shield-fill-check text-azure me-1"></i>
+                    Security Overview
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <div class="score-ring-wrapper">
+                        <div class="score-ring">
+                            <svg viewBox="0 0 120 120" width="120" height="120">
+                                <circle class="score-ring-track" cx="60" cy="60" r="50"/>
+                                <circle class="score-ring-fill" cx="60" cy="60" r="50"/>
+                            </svg>
+                            <div class="score-ring-label">
+                                <span class="score-number" th:text="${summary.secureScore}">78</span>
+                                <span class="score-max">/100</span>
+                            </div>
+                        </div>
+                        <div class="fs-12 text-muted mt-1">Secure Score</div>
+                    </div>
+                    <div class="flex-fill" style="font-size:12.5px">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-danger fw-600">High severity</span>
+                            <span class="fw-700 text-danger">3</span>
+                        </div>
+                        <div class="az-progress mb-2"><div class="az-progress-bar progress-red" style="width:43%"></div></div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span style="color:#b45309;" class="fw-600">Medium severity</span>
+                            <span class="fw-700" style="color:#b45309;">3</span>
+                        </div>
+                        <div class="az-progress mb-2"><div class="az-progress-bar progress-orange" style="width:43%"></div></div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-azure fw-600">Low severity</span>
+                            <span class="fw-700 text-azure">1</span>
+                        </div>
+                        <div class="az-progress"><div class="az-progress-bar progress-blue" style="width:14%"></div></div>
+                    </div>
+                </div>
+                <a href="/security" class="btn-azure-outline mt-3 w-100 justify-content-center">
+                    View Recommendations <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">Monthly Spend Trend</div>
+                        <div class="chart-card-subtitle">Last 6 months (USD)</div>
+                    </div>
+                    <a href="/cost" class="btn-sm-icon">Details <i class="bi bi-chevron-right"></i></a>
+                </div>
+                <div style="height:130px">
+                    <canvas id="costTrendChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- End main grid -->
+
+</main>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/main.js"></script>
+<script>
+    createLineChart('costTrendChart',
+        ['Dec','Jan','Feb','Mar','Apr','May'],
+        [{
+            label: 'Cost (USD)',
+            data: [3200, 3500, 3100, 3800, 3984, 4283],
+            borderColor: '#0078d4',
+            backgroundColor: 'rgba(0,120,212,0.08)',
+            fill: true,
+            tension: 0.4
+        }]
+    );
+</script>
+
+</body>
+</html>

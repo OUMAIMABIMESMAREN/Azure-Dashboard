@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Resource Manager | Microsoft Azure')}"></head>
+<body>
+
+<div th:replace="~{fragments/layout :: sidebar('resources')}"></div>
+<header th:replace="~{fragments/layout :: topbar('Resource Manager')}"></header>
+
+<main class="main-content" id="mainContent">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-diagram-3-fill text-azure me-2" style="font-size:20px"></i>
+                Azure Resource Manager
+            </h1>
+            <p class="page-subtitle">Browse, filter, and manage all cloud resources across subscriptions</p>
+        </div>
+        <div class="page-actions">
+            <a href="/resources/create" class="btn-azure">
+                <i class="bi bi-plus-lg"></i> Create Resource
+            </a>
+            <button class="btn-azure-outline">
+                <i class="bi bi-download"></i> Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Flash -->
+    <div th:if="${successMessage}" class="flash-alert success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- ── Summary Counts ─────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card blue">
+                <div class="stat-icon blue"><i class="bi bi-boxes"></i></div>
+                <div>
+                    <div class="stat-value" th:text="${#lists.size(resources)}">0</div>
+                    <div class="stat-label">Total Resources</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card green">
+                <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+                <div>
+                    <div class="stat-value">11</div>
+                    <div class="stat-label">Running / Active</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card orange">
+                <div class="stat-icon orange"><i class="bi bi-pause-circle"></i></div>
+                <div>
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">Deallocated</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card purple">
+                <div class="stat-icon purple"><i class="bi bi-folder2"></i></div>
+                <div>
+                    <div class="stat-value" th:text="${#lists.size(resourceGroups)}">0</div>
+                    <div class="stat-label">Resource Groups</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Filters Row ────────────────────────────────────────── -->
+    <div class="az-card mb-3" style="padding: 14px 18px">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <label class="az-label mb-0">Filter by:</label>
+            </div>
+            <div class="col-auto">
+                <select class="az-select" style="width:auto" onchange="filterTable(this,'type')">
+                    <option value="">All Types</option>
+                    <option>Virtual Machine</option>
+                    <option>SQL Database</option>
+                    <option>Storage Account</option>
+                    <option>App Service</option>
+                    <option>Kubernetes Service</option>
+                    <option>VM Scale Set</option>
+                    <option>Key Vault</option>
+                    <option>Virtual Network</option>
+                    <option>Load Balancer</option>
+                    <option>CDN Profile</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select class="az-select" style="width:auto" onchange="filterTable(this,'group')">
+                    <option value="">All Resource Groups</option>
+                    <option th:each="rg : ${resourceGroups}" th:value="${rg}" th:text="${rg}"></option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <select class="az-select" style="width:auto" onchange="filterTable(this,'status')">
+                    <option value="">All Statuses</option>
+                    <option>Running</option>
+                    <option>Online</option>
+                    <option>Active</option>
+                    <option>Available</option>
+                    <option>Deallocated</option>
+                </select>
+            </div>
+            <div class="col">
+                <input type="text" id="tableSearch" class="az-input" placeholder="&#xF52A; Search resources..."/>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Resources Table ───────────────────────────────────── -->
+    <div class="az-table-wrapper">
+        <div class="az-table-header">
+            <div class="az-table-title">
+                <i class="bi bi-table me-1"></i>
+                All Resources
+                <span class="ms-2 text-muted fs-12 fw-400">
+                    (<span th:text="${#lists.size(resources)}"></span> items)
+                </span>
+            </div>
+            <div class="d-flex gap-8">
+                <button class="btn-sm-icon"><i class="bi bi-grid-3x3-gap"></i></button>
+                <button class="btn-sm-icon active"><i class="bi bi-list-ul"></i></button>
+                <button class="btn-sm-icon"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="az-table" id="resourceTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" style="cursor:pointer"/></th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Resource Group</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Tags</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="res : ${resources}"
+                        th:data-type="${res.type}"
+                        th:data-group="${res.resourceGroup}"
+                        th:data-status="${res.status}">
+                        <td><input type="checkbox" style="cursor:pointer"/></td>
+                        <td>
+                            <span class="resource-name" th:text="${res.name}"></span>
+                            <div class="fs-12 text-muted" th:text="${res.id}"></div>
+                        </td>
+                        <td class="fs-12 text-muted" th:text="${res.type}"></td>
+                        <td>
+                            <span class="tag-chip" th:text="${res.resourceGroup}"></span>
+                        </td>
+                        <td class="fs-12" th:text="${res.location}"></td>
+                        <td>
+                            <span class="az-badge"
+                                  th:classappend="${res.status == 'Running' or res.status == 'Online' or res.status == 'Active' or res.status == 'Available'} ? 'badge-active' :
+                                                 (${res.status == 'Deallocated'} ? 'badge-deallocated' : 'badge-warning')"
+                                  th:text="${res.status}">
+                            </span>
+                        </td>
+                        <td><span class="tag-chip" th:text="${res.tags}"></span></td>
+                        <td>
+                            <div class="d-flex gap-8">
+                                <button class="btn-sm-icon text-azure"><i class="bi bi-pencil"></i></button>
+                                <button class="btn-sm-icon"
+                                        th:data-confirm="'Delete ' + ${res.name} + '? This action cannot be undone.'">
+                                    <i class="bi bi-trash text-danger"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination -->
+        <div class="d-flex align-center justify-content-between px-4 py-3 border-top"
+             style="font-size:12.5px; color:var(--text-muted)">
+            <span th:text="'Showing 1–' + ${#lists.size(resources)} + ' of ' + ${#lists.size(resources)} + ' resources'"></span>
+            <div class="d-flex gap-8">
+                <button class="btn-sm-icon" disabled>← Prev</button>
+                <button class="btn-sm-icon" style="background:var(--azure-blue); color:#fff; border-color:var(--azure-blue)">1</button>
+                <button class="btn-sm-icon">Next →</button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/main.js"></script>
+<script>
+function filterTable(sel, attr) {
+    const val = sel.value.toLowerCase();
+    document.querySelectorAll('#resourceTable tbody tr').forEach(function(row) {
+        const cellVal = (row.getAttribute('data-' + attr) || '').toLowerCase();
+        row.style.display = (!val || cellVal.includes(val)) ? '' : 'none';
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('New Runbook | Microsoft Azure')}"></head>
+<body>
+
+<div th:replace="~{fragments/layout :: sidebar('automation')}"></div>
+<header th:replace="~{fragments/layout :: topbar('New Runbook')}"></header>
+
+<main class="main-content" id="mainContent">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-file-code-fill text-azure me-2" style="font-size:20px"></i>
+                Create New Runbook
+            </h1>
+            <p class="page-subtitle">Define an automation runbook with a schedule and script</p>
+        </div>
+        <a href="/automation" class="btn-azure-outline">
+            <i class="bi bi-arrow-left"></i> Back to Automation
+        </a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-7">
+            <div class="az-card">
+                <h2 class="fw-700" style="font-size:16px; margin-bottom:20px">Runbook Configuration</h2>
+
+                <form th:action="@{/automation/create/submit}" method="get">
+
+                    <div class="az-form-section">
+                        <div class="az-form-section-title">
+                            <i class="bi bi-info-circle text-azure me-1"></i> Basic Information
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label" for="runbookName">Runbook Name <span class="required">*</span></label>
+                            <input type="text" class="az-input" id="runbookName" name="runbookName"
+                                   placeholder="e.g. Cleanup-Old-Snapshots" required/>
+                            <div class="az-form-help">Use descriptive names with hyphens. No spaces.</div>
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label" for="runbookType">Runbook Type <span class="required">*</span></label>
+                            <select class="az-select" id="runbookType" name="runbookType" required>
+                                <option value="">— Select type —</option>
+                                <option value="PowerShell">PowerShell</option>
+                                <option value="PowerShell Workflow">PowerShell Workflow</option>
+                                <option value="Python 3">Python 3</option>
+                                <option value="Graphical">Graphical</option>
+                            </select>
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label" for="description">Description</label>
+                            <textarea class="az-textarea" id="description" name="description"
+                                      placeholder="Describe what this runbook does..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="az-form-section">
+                        <div class="az-form-section-title">
+                            <i class="bi bi-clock text-azure me-1"></i> Schedule
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label" for="schedule">Schedule <span class="required">*</span></label>
+                            <select class="az-select" id="schedule" name="schedule" required>
+                                <option value="">— Select schedule —</option>
+                                <option value="Once (manual)">Once (manual trigger only)</option>
+                                <option value="Hourly">Every Hour</option>
+                                <option value="Daily 02:00 UTC">Daily at 02:00 UTC</option>
+                                <option value="Daily 06:00 UTC">Daily at 06:00 UTC</option>
+                                <option value="Weekdays 08:00 UTC">Weekdays at 08:00 UTC</option>
+                                <option value="Weekdays 20:00 UTC">Weekdays at 20:00 UTC</option>
+                                <option value="Weekly Sunday 03:00">Weekly (Sunday 03:00 UTC)</option>
+                                <option value="Monthly 1st Sunday">Monthly (1st Sunday)</option>
+                            </select>
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label">Run On</label>
+                            <div class="d-flex gap-3">
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px">
+                                    <input type="radio" name="runOn" value="Azure" checked/> Azure Cloud
+                                </label>
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px">
+                                    <input type="radio" name="runOn" value="Hybrid"/> Hybrid Worker Group
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="az-form-section" style="border-bottom:none; margin-bottom:0; padding-bottom:0">
+                        <div class="az-form-section-title">
+                            <i class="bi bi-code-square text-azure me-1"></i> Script Content
+                        </div>
+                        <div class="az-form-group">
+                            <label class="az-label" for="scriptContent">Script Body</label>
+                            <textarea class="az-textarea" id="scriptContent" name="scriptContent"
+                                      style="min-height:160px; font-family:monospace; font-size:12px; background:#1e1e2e; color:#cdd6f4; border-color:#444"
+                                      placeholder="# PowerShell script
+param(
+    [string]$ResourceGroup = 'rg-production'
+)
+
+# Your automation logic here
+Write-Output &quot;Starting automation task...&quot;
+"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn-azure">
+                            <i class="bi bi-check2-circle"></i> Create Runbook
+                        </button>
+                        <button type="button" class="btn-azure-outline">
+                            <i class="bi bi-play"></i> Test Draft
+                        </button>
+                        <a href="/automation" class="btn-azure-outline">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="az-card mb-3">
+                <div class="fw-700 fs-13 mb-3">
+                    <i class="bi bi-terminal text-azure me-1"></i> Common Runbook Templates
+                </div>
+                <div class="d-flex flex-column" style="gap:8px">
+                    <button class="btn-azure-outline" onclick="setTemplate('backup')" style="justify-content:flex-start">
+                        <i class="bi bi-cloud-upload"></i> VM Backup Script
+                    </button>
+                    <button class="btn-azure-outline" onclick="setTemplate('cleanup')" style="justify-content:flex-start">
+                        <i class="bi bi-trash2"></i> Resource Cleanup Script
+                    </button>
+                    <button class="btn-azure-outline" onclick="setTemplate('scaledown')" style="justify-content:flex-start">
+                        <i class="bi bi-arrow-down-circle"></i> Scale Down Off-Hours
+                    </button>
+                    <button class="btn-azure-outline" onclick="setTemplate('patch')" style="justify-content:flex-start">
+                        <i class="bi bi-shield-check"></i> Security Patch Check
+                    </button>
+                </div>
+            </div>
+
+            <div class="az-card">
+                <div class="fw-700 fs-13 mb-2">
+                    <i class="bi bi-question-circle text-azure me-1"></i> Runbook Best Practices
+                </div>
+                <ul style="font-size:12.5px; padding-left:18px; display:flex; flex-direction:column; gap:8px; color:var(--text-secondary)">
+                    <li>Always use <code>param()</code> blocks for configurable inputs.</li>
+                    <li>Include <code>Write-Output</code> for job logging visibility.</li>
+                    <li>Use <code>try/catch</code> for error handling and exit codes.</li>
+                    <li>Test with small resource sets before running against production.</li>
+                    <li>Use Managed Identity instead of stored credentials.</li>
+                    <li>Tag resources before bulk operations for safe targeting.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/main.js"></script>
+<script>
+const templates = {
+    backup: `param([string]$ResourceGroup = 'rg-production')
+try {
+    $VMs = Get-AzVM -ResourceGroupName $ResourceGroup
+    foreach ($VM in $VMs) {
+        Write-Output "Backing up: $($VM.Name)"
+        # Backup-AzRecoveryServicesBackupItem -Item $VM ...
+    }
+    Write-Output "Backup completed successfully."
+} catch {
+    Write-Error "Backup failed: $_"
+    exit 1
+}`,
+    cleanup: `param(
+    [int]$RetentionDays = 30,
+    [string]$ResourceGroup = 'rg-production'
+)
+$cutoff = (Get-Date).AddDays(-$RetentionDays)
+$snapshots = Get-AzSnapshot -ResourceGroupName $ResourceGroup
+foreach ($snap in $snapshots) {
+    if ($snap.TimeCreated -lt $cutoff) {
+        Write-Output "Deleting snapshot: $($snap.Name)"
+        Remove-AzSnapshot -ResourceGroupName $ResourceGroup -SnapshotName $snap.Name -Force
+    }
+}
+Write-Output "Cleanup complete."`,
+    scaledown: `param([string]$ResourceGroup = 'rg-dev')
+$VMs = Get-AzVM -ResourceGroupName $ResourceGroup -Status |
+       Where-Object { $_.PowerState -eq 'VM running' -and $_.Tags['env'] -ne 'prod' }
+foreach ($VM in $VMs) {
+    Write-Output "Deallocating: $($VM.Name)"
+    Stop-AzVM -ResourceGroupName $ResourceGroup -Name $VM.Name -Force
+}
+Write-Output "Scale-down complete. $($VMs.Count) VMs stopped."`,
+    patch: `param([string]$ResourceGroup = 'rg-production')
+$VMs = Get-AzVM -ResourceGroupName $ResourceGroup
+foreach ($VM in $VMs) {
+    $status = Get-AzVMRunCommand -ResourceGroupName $ResourceGroup -VMName $VM.Name
+    Write-Output "Checking patches for: $($VM.Name)"
+    # Invoke-AzVMRunCommand -CommandId 'RunPowerShellScript' ...
+}
+Write-Output "Patch assessment complete."`
+};
+function setTemplate(key) {
+    document.getElementById('scriptContent').value = templates[key] || '';
+}
+</script>
+</body>
+</html>

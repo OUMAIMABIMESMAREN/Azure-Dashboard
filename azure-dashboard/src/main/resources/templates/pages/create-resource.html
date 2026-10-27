@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Create Resource | Microsoft Azure')}"></head>
+<body>
+
+<div th:replace="~{fragments/layout :: sidebar('resources')}"></div>
+<header th:replace="~{fragments/layout :: topbar('Create a resource')}"></header>
+
+<main class="main-content" id="mainContent">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-plus-circle-fill text-azure me-2" style="font-size:20px"></i>
+                Create a resource
+            </h1>
+            <p class="page-subtitle">Deploy a new Azure resource to your subscription</p>
+        </div>
+        <a href="/resources" class="btn-azure-outline">
+            <i class="bi bi-arrow-left"></i> Back to Resources
+        </a>
+    </div>
+
+    <div class="row g-3">
+        <!-- Left: Form -->
+        <div class="col-12 col-lg-7">
+            <div class="az-card">
+                <h2 class="fw-700" style="font-size:16px; margin-bottom:20px">Resource Details</h2>
+
+                <form th:action="@{/resources/create/submit}" method="get">
+
+                    <div class="az-form-section">
+                        <div class="az-form-section-title">
+                            <i class="bi bi-info-circle text-azure me-1"></i> Basics
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label">Subscription <span class="required">*</span></label>
+                            <select class="az-select" disabled>
+                                <option>Enterprise Dev/Test</option>
+                            </select>
+                            <div class="az-form-help">Your Azure subscription for billing.</div>
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label" for="resourceGroup">Resource Group <span class="required">*</span></label>
+                            <select class="az-select" id="resourceGroup" name="resourceGroup" required>
+                                <option value="">— Select resource group —</option>
+                                <option th:each="rg : ${resourceGroups}" th:value="${rg}" th:text="${rg}"></option>
+                            </select>
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label" for="resourceName">Resource Name <span class="required">*</span></label>
+                            <input type="text" class="az-input" id="resourceName" name="resourceName"
+                                   placeholder="e.g. my-prod-vm-01" required
+                                   pattern="[a-zA-Z0-9\-]+" minlength="3" maxlength="64"/>
+                            <div class="az-form-help">Alphanumeric and hyphens only. 3–64 characters.</div>
+                        </div>
+                    </div>
+
+                    <div class="az-form-section">
+                        <div class="az-form-section-title">
+                            <i class="bi bi-boxes text-azure me-1"></i> Resource Type
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label" for="resourceType">Type <span class="required">*</span></label>
+                            <select class="az-select" id="resourceType" name="resourceType" required>
+                                <option value="">— Select type —</option>
+                                <optgroup label="Compute">
+                                    <option value="Virtual Machine">Virtual Machine</option>
+                                    <option value="VM Scale Set">VM Scale Set</option>
+                                    <option value="Kubernetes Service">Kubernetes Service</option>
+                                    <option value="App Service">App Service</option>
+                                </optgroup>
+                                <optgroup label="Data">
+                                    <option value="SQL Database">SQL Database</option>
+                                    <option value="Storage Account">Storage Account</option>
+                                    <option value="Cosmos DB">Cosmos DB</option>
+                                </optgroup>
+                                <optgroup label="Networking">
+                                    <option value="Virtual Network">Virtual Network</option>
+                                    <option value="Load Balancer">Load Balancer</option>
+                                    <option value="Application Gateway">Application Gateway</option>
+                                </optgroup>
+                                <optgroup label="Security">
+                                    <option value="Key Vault">Key Vault</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div class="az-form-group">
+                            <label class="az-label" for="region">Region <span class="required">*</span></label>
+                            <select class="az-select" id="region" name="region" required>
+                                <option value="">— Select region —</option>
+                                <optgroup label="Americas">
+                                    <option value="East US">East US</option>
+                                    <option value="East US 2">East US 2</option>
+                                    <option value="West US">West US</option>
+                                    <option value="West US 2">West US 2</option>
+                                    <option value="Central US">Central US</option>
+                                </optgroup>
+                                <optgroup label="Europe">
+                                    <option value="North Europe">North Europe</option>
+                                    <option value="West Europe">West Europe</option>
+                                    <option value="UK South">UK South</option>
+                                </optgroup>
+                                <optgroup label="Asia Pacific">
+                                    <option value="Southeast Asia">Southeast Asia</option>
+                                    <option value="East Asia">East Asia</option>
+                                    <option value="Japan East">Japan East</option>
+                                    <option value="Australia East">Australia East</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="az-form-section">
+                        <div class="az-form-section-title">
+                            <i class="bi bi-tags text-azure me-1"></i> Tags
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="text" class="az-input" placeholder="Tag name (e.g. env)" name="tagKey"/>
+                            </div>
+                            <div class="col-6">
+                                <input type="text" class="az-input" placeholder="Tag value (e.g. prod)" name="tagValue"/>
+                            </div>
+                        </div>
+                        <div class="az-form-help mt-1">Optional. Tags help organize and track resources.</div>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-2">
+                        <button type="submit" class="btn-azure">
+                            <i class="bi bi-check2-circle"></i> Review + Create
+                        </button>
+                        <a href="/resources" class="btn-azure-outline">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right: Info Panel -->
+        <div class="col-12 col-lg-5">
+            <div class="az-card mb-3">
+                <div class="fw-700 fs-13 mb-3">
+                    <i class="bi bi-lightbulb text-azure me-1"></i> Deployment Tips
+                </div>
+                <ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:12px">
+                    <li style="display:flex; gap:10px; font-size:12.5px">
+                        <i class="bi bi-geo-alt-fill text-azure mt-1"></i>
+                        <span><strong>Choose a region</strong> closest to your users to minimize latency.</span>
+                    </li>
+                    <li style="display:flex; gap:10px; font-size:12.5px">
+                        <i class="bi bi-folder2-open text-azure mt-1"></i>
+                        <span><strong>Resource groups</strong> help you manage related resources as a single unit.</span>
+                    </li>
+                    <li style="display:flex; gap:10px; font-size:12.5px">
+                        <i class="bi bi-tags-fill text-azure mt-1"></i>
+                        <span><strong>Tagging</strong> your resources allows accurate cost attribution and governance.</span>
+                    </li>
+                    <li style="display:flex; gap:10px; font-size:12.5px">
+                        <i class="bi bi-shield-check text-azure mt-1"></i>
+                        <span><strong>Naming conventions</strong> improve discoverability and maintenance long-term.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="az-card" style="background: #f0f7ff; border-color: #bfdbfe">
+                <div class="fw-700 fs-13 mb-2 text-azure">
+                    <i class="bi bi-info-circle-fill me-1"></i> Estimated Cost
+                </div>
+                <div class="fs-12 text-muted mb-2">
+                    Select a resource type and region above to see cost estimates. Prices vary by SKU, region, and usage.
+                </div>
+                <div id="costEstimate" class="fw-600 text-azure fs-13">—</div>
+                <div class="az-form-help mt-1">Estimates are approximate and exclude data transfer costs.</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/main.js"></script>
+<script>
+const costHints = {
+    'Virtual Machine':    'From ~$15/mo (B1s) to $500+/mo depending on SKU',
+    'VM Scale Set':       'From ~$15/mo per instance + load balancer',
+    'Kubernetes Service': 'Management plane free; node VMs from ~$30/mo each',
+    'App Service':        'Free tier available; B1 from ~$13/mo',
+    'SQL Database':       'DTU Basic from ~$5/mo; vCore General Purpose from ~$120/mo',
+    'Storage Account':    'LRS Blob from ~$0.018/GB/mo + transaction costs',
+    'Cosmos DB':          'From ~$25/mo (400 RU/s) + storage',
+    'Virtual Network':    'Free; charges apply for VPN Gateway (~$27/mo)',
+    'Load Balancer':      'Basic: Free; Standard from ~$18/mo + data',
+    'Application Gateway': 'From ~$20/mo + consumption',
+    'Key Vault':          'From ~$0.03/10k operations'
+};
+document.getElementById('resourceType').addEventListener('change', function() {
+    const el = document.getElementById('costEstimate');
+    el.textContent = costHints[this.value] || '—';
+});
+</script>
+</body>
+</html>

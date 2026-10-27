@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Azure Monitor | Microsoft Azure')}"></head>
+<body>
+
+<div th:replace="~{fragments/layout :: sidebar('monitor')}"></div>
+<header th:replace="~{fragments/layout :: topbar('Azure Monitor')}"></header>
+
+<main class="main-content" id="mainContent">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">
+                <i class="bi bi-activity text-azure me-2" style="font-size:20px"></i>
+                Azure Monitor
+            </h1>
+            <p class="page-subtitle">Metrics, alerts, and diagnostics across all resources</p>
+        </div>
+        <div class="page-actions">
+            <button class="btn-azure-outline"><i class="bi bi-plus"></i> New Alert Rule</button>
+            <button class="btn-azure"><i class="bi bi-download"></i> Export Metrics</button>
+        </div>
+    </div>
+
+    <!-- Flash Alert -->
+    <div th:if="${successMessage}" class="flash-alert success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- ── Metric Gauges ──────────────────────────────────────── -->
+    <div class="az-card mb-4">
+        <div class="fw-700 fs-13 mb-3">
+            <i class="bi bi-speedometer2 text-azure me-1"></i>
+            Live Metrics &nbsp;
+            <span class="fs-12 text-muted fw-400">— Updated 30 seconds ago</span>
+        </div>
+        <div class="row g-0">
+            <div class="col-6 col-md-3 col-lg border-end">
+                <div class="metric-gauge">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 88 88" width="88" height="88">
+                            <circle class="gauge-track" cx="44" cy="44" r="36"/>
+                            <circle class="gauge-fill" cx="44" cy="44" r="36"
+                                    stroke="#0078d4"
+                                    data-percent="67"
+                                    style="stroke-dashoffset:226"/>
+                        </svg>
+                        <div class="gauge-label">
+                            <span class="gauge-value text-azure"
+                                  th:text="${metrics.cpuPercent} + '%'">67%</span>
+                        </div>
+                    </div>
+                    <span class="gauge-name">CPU Usage</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg border-end">
+                <div class="metric-gauge">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 88 88" width="88" height="88">
+                            <circle class="gauge-track" cx="44" cy="44" r="36"/>
+                            <circle class="gauge-fill" cx="44" cy="44" r="36"
+                                    stroke="#6366f1"
+                                    data-percent="54"
+                                    style="stroke-dashoffset:226"/>
+                        </svg>
+                        <div class="gauge-label">
+                            <span class="gauge-value" style="color:#6366f1"
+                                  th:text="${metrics.memoryPercent} + '%'">54%</span>
+                        </div>
+                    </div>
+                    <span class="gauge-name">Memory</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg border-end">
+                <div class="metric-gauge">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 88 88" width="88" height="88">
+                            <circle class="gauge-track" cx="44" cy="44" r="36"/>
+                            <circle class="gauge-fill" cx="44" cy="44" r="36"
+                                    stroke="#107c10"
+                                    data-percent="99"
+                                    style="stroke-dashoffset:226"/>
+                        </svg>
+                        <div class="gauge-label">
+                            <span class="gauge-value text-success" style="font-size:14px"
+                                  th:text="${metrics.availabilityPercent} + '%'">99.9%</span>
+                        </div>
+                    </div>
+                    <span class="gauge-name">Availability</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg border-end">
+                <div class="metric-gauge">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 88 88" width="88" height="88">
+                            <circle class="gauge-track" cx="44" cy="44" r="36"/>
+                            <circle class="gauge-fill" cx="44" cy="44" r="36"
+                                    stroke="#d97706"
+                                    data-percent="16"
+                                    style="stroke-dashoffset:226"/>
+                        </svg>
+                        <div class="gauge-label">
+                            <span class="gauge-value" style="color:#d97706; font-size:13px"
+                                  th:text="${metrics.avgResponseMs} + 'ms'">143ms</span>
+                        </div>
+                    </div>
+                    <span class="gauge-name">Avg Response</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-lg">
+                <div class="metric-gauge">
+                    <div class="gauge-ring">
+                        <svg viewBox="0 0 88 88" width="88" height="88">
+                            <circle class="gauge-track" cx="44" cy="44" r="36"/>
+                            <circle class="gauge-fill" cx="44" cy="44" r="36"
+                                    stroke="#c4262e"
+                                    data-percent="8"
+                                    style="stroke-dashoffset:226"/>
+                        </svg>
+                        <div class="gauge-label">
+                            <span class="gauge-value text-danger" style="font-size:13px"
+                                  th:text="${metrics.errorRate} + '%'">0.8%</span>
+                        </div>
+                    </div>
+                    <span class="gauge-name">Error Rate</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Charts Row ─────────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">CPU & Memory (last 60 min)</div>
+                        <div class="chart-card-subtitle">Percentage over time</div>
+                    </div>
+                    <div class="d-flex gap-8">
+                        <span class="tag-chip">api-server-01</span>
+                        <button class="btn-sm-icon">1h</button>
+                    </div>
+                </div>
+                <div style="height:200px">
+                    <canvas id="cpuMemChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">Requests per Minute</div>
+                        <div class="chart-card-subtitle">All resources · last 60 min</div>
+                    </div>
+                    <button class="btn-sm-icon">Export</button>
+                </div>
+                <div style="height:200px">
+                    <canvas id="reqChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Network Metrics ───────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="az-card text-center">
+                <div class="text-muted fs-12 mb-1">Network In</div>
+                <div class="fw-700" style="font-size:20px; color:#0078d4"
+                     th:text="${metrics.networkInMbps} + ' Mbps'"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="az-card text-center">
+                <div class="text-muted fs-12 mb-1">Network Out</div>
+                <div class="fw-700" style="font-size:20px; color:#6366f1"
+                     th:text="${metrics.networkOutMbps} + ' Mbps'"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="az-card text-center">
+                <div class="text-muted fs-12 mb-1">Disk Read</div>
+                <div class="fw-700" style="font-size:20px; color:#107c10"
+                     th:text="${metrics.diskReadMBps} + ' MB/s'"></div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="az-card text-center">
+                <div class="text-muted fs-12 mb-1">Disk Write</div>
+                <div class="fw-700" style="font-size:20px; color:#d97706"
+                     th:text="${metrics.diskWriteMBps} + ' MB/s'"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Alerts Table ───────────────────────────────────────── -->
+    <div class="az-table-wrapper">
+        <div class="az-table-header">
+            <div>
+                <div class="az-table-title"><i class="bi bi-bell-fill text-orange me-1"></i> Active Alerts</div>
+            </div>
+            <div class="d-flex gap-8 align-center">
+                <input type="text" id="tableSearch" class="az-input" style="width:220px"
+                       placeholder="&#xF52A; Filter alerts..."/>
+                <button class="btn-sm-icon"><i class="bi bi-funnel"></i> Filter</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="az-table">
+                <thead>
+                    <tr>
+                        <th>Alert Name</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Resource</th>
+                        <th>Fired Time</th>
+                        <th>Condition</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="alert : ${alerts}">
+                        <td>
+                            <div class="fw-600" th:text="${alert.name}"></div>
+                            <div class="fs-12 text-muted" th:text="${alert.description}"></div>
+                        </td>
+                        <td>
+                            <span class="sev-badge"
+                                  th:classappend="${alert.severity == 'Sev1'} ? 'sev-1' :
+                                                 (${alert.severity == 'Sev2'} ? 'sev-2' :
+                                                 (${alert.severity == 'Sev3'} ? 'sev-3' : 'sev-4'))"
+                                  th:text="${alert.severity}"></span>
+                        </td>
+                        <td>
+                            <span class="az-badge"
+                                  th:classappend="${alert.status == 'Fired'} ? 'badge-fired' : 'badge-resolved'"
+                                  th:text="${alert.status}"></span>
+                        </td>
+                        <td>
+                            <span class="resource-name" th:text="${alert.resource}"></span>
+                        </td>
+                        <td class="text-muted fs-12" th:text="${alert.firedTime}"></td>
+                        <td><code class="fs-12" th:text="${alert.condition}"></code></td>
+                        <td>
+                            <div class="d-flex gap-8">
+                                <button class="btn-sm-icon text-azure">Acknowledge</button>
+                                <button class="btn-sm-icon">Details</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/main.js"></script>
+<script th:inline="javascript">
+    const labels   = /*[[${metrics.chartLabels}]]*/ '[]';
+    const cpuData  = /*[[${metrics.cpuChartData}]]*/ '[]';
+    const memData  = /*[[${metrics.memChartData}]]*/ '[]';
+    const reqData  = /*[[${metrics.reqChartData}]]*/ '[]';
+
+    const parsedLabels = JSON.parse(labels);
+    const parsedCpu    = JSON.parse(cpuData);
+    const parsedMem    = JSON.parse(memData);
+    const parsedReq    = JSON.parse(reqData);
+
+    createLineChart('cpuMemChart', parsedLabels, [
+        { label: 'CPU %',    data: parsedCpu, borderColor: '#0078d4', backgroundColor: 'rgba(0,120,212,0.06)', fill: true, tension: 0.4 },
+        { label: 'Memory %', data: parsedMem, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.06)', fill: true, tension: 0.4 }
+    ]);
+
+    createLineChart('reqChart', parsedLabels, [
+        { label: 'Req/min', data: parsedReq, borderColor: '#107c10', backgroundColor: 'rgba(16,124,16,0.06)', fill: true, tension: 0.4 }
+    ]);
+</script>
+</body>
+</html>
